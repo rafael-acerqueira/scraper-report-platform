@@ -31,8 +31,8 @@ scraper-report-platform/
 ## Roadmap
 
 - [x] Initial project and repository setup
-- [ ] Virtual environment and Django setup
-- [ ] Scraper structure (Scrapy/BeautifulSoup)
+- [x] Virtual environment and Django setup
+- [x] Scraper structure (Scrapy/BeautifulSoup)
 - [ ] Marketplace scraping implementation
 - [ ] Store data on AWS S3
 - [ ] Automated report generation
