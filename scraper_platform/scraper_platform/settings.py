@@ -37,7 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'products',
+    'scraper_platform.products',
     'rest_framework',
     'django_filters'
 ]
@@ -52,7 +52,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'scraper_platform.urls'
+ROOT_URLCONF = 'scraper_platform.scraper_platform.urls'
 
 TEMPLATES = [
     {
@@ -69,7 +69,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'scraper_platform.wsgi.application'
+WSGI_APPLICATION = 'scraper_platform.scraper_platform.wsgi.application'
 
 
 # Database

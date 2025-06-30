@@ -33,7 +33,7 @@ def test_export_to_csv():
     with open(files[0], newline='', encoding='utf-8') as f:
         reader = csv.DictReader(f)
         rows = list(reader)
-    # DictReader converte tudo para string, então ajuste se for necessário
+
     assert rows[0]['title'] == DUMMY_DATA[0]['title']
     assert rows[0]['price'] == DUMMY_DATA[0]['price']
     assert len(rows) == 2
