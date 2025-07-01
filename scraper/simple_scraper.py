@@ -4,7 +4,18 @@ from typing import List, Dict, Optional
 import os
 import json
 import csv
+import re
 from datetime import datetime
+
+
+def clean_price(price_str):
+    """Remove moneatry sign and return a float value"""
+    cleaned = re.sub(r'[^\d,\.]', '', price_str)
+    cleaned = cleaned.replace(',', '.')
+    try:
+        return float(cleaned)
+    except ValueError:
+        return None
 
 def fetch_page(url: str, timeout: int = 10) -> Optional[BeautifulSoup]:
     try:
@@ -19,7 +30,8 @@ def scrape_books_from_soup(soup: BeautifulSoup) -> List[Dict]:
     books = []
     for book in soup.select('article.product_pod'):
         title = book.h3.a['title']
-        price = book.select_one('.price_color').text
+        price_text = book.select_one('.price_color').text
+        price = clean_price(price_text)
         books.append({'title': title, 'price': price})
     return books
 
