@@ -25,6 +25,7 @@ pip-wheel-metadata/
 share/python-wheels/
 *.egg-info/
 outputs/
+s3_bucket/
 .installed.cfg
 *.egg
 
