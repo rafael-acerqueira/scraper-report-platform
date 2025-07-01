@@ -1,6 +1,6 @@
 from django.core.management.base import BaseCommand
 from scraper.simple_scraper import scrape_books
-from products.models import Product
+from scraper_platform.products.models import Product
 
 URLS = [
     'https://books.toscrape.com/catalogue/page-1.html',
