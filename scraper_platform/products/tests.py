@@ -1,4 +1,5 @@
 import pytest
+import random
 from decimal import Decimal
 from django.urls import reverse
 from scraper_platform.products.models import Product
@@ -119,3 +120,118 @@ def test_product_ordering_by_price(client):
     response_desc = client.get(url, {'ordering': '-price'})
     prices_desc = [float(item['price']) for item in response_desc.json()['results']]
     assert prices_desc == sorted(prices_desc, reverse=True)
+
+@pytest.mark.django_db
+def test_export_products_csv(client):
+    Product.objects.create(title='Book 1', price='10')
+    url = reverse('product-export')
+    response = client.get(url + '?export_format=csv')
+    assert response.status_code == 200
+    assert b'title,price' in response.content  # CSV header present
+
+@pytest.mark.django_db
+def test_export_products_csv_empty(client):
+    url = reverse('product-export')
+    response = client.get(url + '?export_format=csv')
+    assert response.status_code == 200
+
+    assert b'title,price' in response.content
+    assert response.content.count(b'\n') == 1
+
+@pytest.mark.django_db
+def test_export_products_json(client):
+    Product.objects.create(title='Book 2', price='20')
+    url = reverse('product-export')
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response.json()[0]['title'] == 'Book 2'
+
+@pytest.mark.django_db
+def test_export_products_json_empty(client):
+    url = reverse('product-export')
+    response = client.get(url)
+    assert response.status_code == 200
+    assert response.json() == []
+
+@pytest.mark.django_db
+def test_export_products_json_utf8(client):
+    Product.objects.create(title='Açaí & pão de queijo 😋', price='7.00')
+    url = reverse('product-export')
+    response = client.get(url)
+    assert response.status_code == 200
+    data = response.json()
+    assert any('Açaí & pão de queijo 😋' in item['title'] for item in data)
+
+@pytest.mark.django_db
+def test_export_products_json_with_title_filter(client):
+    Product.objects.create(title='Django Unchained', price='40')
+    Product.objects.create(title='Python for Beginners', price='25')
+    url = reverse('product-export')
+    response = client.get(url + '?title=Django')
+    data = response.json()
+    titles = [item['title'] for item in data]
+    assert 'Django Unchained' in titles
+    assert 'Python for Beginners' not in titles
+
+@pytest.mark.django_db
+def test_export_products_csv_multiple(client):
+    Product.objects.create(title='Book A', price='10')
+    Product.objects.create(title='Book B', price='20')
+    url = reverse('product-export')
+    response = client.get(url + '?export_format=csv')
+    content = response.content.decode()
+    assert 'Book A' in content
+    assert 'Book B' in content
+    assert content.count('\n') == 3
+
+@pytest.mark.django_db
+def test_export_products_csv_headers(client):
+    Product.objects.create(title='Book Z', price='40')
+    url = reverse('product-export')
+    response = client.get(url + '?export_format=csv')
+    assert response.status_code == 200
+    assert response['Content-Type'] == 'text/csv'
+    assert 'attachment' in response['Content-Disposition']
+
+@pytest.mark.django_db
+def test_export_products_csv_utf8(client):
+    Product.objects.create(title='Coffee 🚀', price='5.50')
+    url = reverse('product-export')
+    response = client.get(url + '?export_format=csv')
+    content = response.content.decode('utf-8')
+    assert 'Coffee 🚀' in content
+
+@pytest.mark.django_db
+def test_export_products_csv_with_min_price_filter(client):
+    Product.objects.create(title='Cheap Book', price='5')
+    Product.objects.create(title='Expensive Book', price='50')
+    url = reverse('product-export')
+    response = client.get(url + '?export_format=csv&min_price=10')
+    content = response.content.decode()
+    assert 'Expensive Book' in content
+    assert 'Cheap Book' not in content
+
+@pytest.mark.django_db
+def test_export_products_post_not_allowed(client):
+    url = reverse('product-export')
+    response = client.post(url, {})
+    assert response.status_code == 405  # Method Not Allowed
+
+@pytest.mark.django_db
+def test_export_products_delete_not_allowed(client):
+    url = reverse('product-export')
+    response = client.delete(url)
+    assert response.status_code == 405
+
+@pytest.mark.django_db
+def test_export_products_csv_many_products(client):
+    for i in range(150):
+        Product.objects.create(
+            title=f'Book {i}',
+            price=str(random.randint(1, 100))
+        )
+    url = reverse('product-export')
+    response = client.get(url + '?export_format=csv')
+    content = response.content.decode()
+
+    assert content.count('\n') == 151
