@@ -2,7 +2,9 @@ from .base import BaseScraper
 from bs4 import BeautifulSoup
 from typing import List, Dict
 from scraper.utils.export import export_to_json, export_to_csv
+from .registry import register_scraper
 
+@register_scraper('books')
 class BookScraper(BaseScraper):
     def parse_books(self, soup: BeautifulSoup) -> List[Dict]:
         books = []

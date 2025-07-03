@@ -3,7 +3,7 @@ import json
 import csv
 import glob
 
-from scraper.simple_scraper import export_to_json, export_to_csv
+from scraper.book_scraper import export_to_json, export_to_csv
 
 TEST_OUTPUT_DIR = "scraper/outputs"
 DUMMY_DATA = [
