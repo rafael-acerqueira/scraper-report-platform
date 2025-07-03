@@ -22,7 +22,7 @@ class BaseScraper(ABC):
             return None
 
     @abstractmethod
-    def parse_books(self, soup: BeautifulSoup) -> List[Dict]:
+    def parse(self, soup: BeautifulSoup) -> List[Dict]:
         pass
 
     def scrape(self) -> List[Dict]:
@@ -30,7 +30,7 @@ class BaseScraper(ABC):
         for url in self.urls:
             soup = self.fetch_page(url)
             if soup:
-                books = self.parse_books(soup)
+                books = self.parse(soup)
                 all_books.extend(books)
         return all_books
 

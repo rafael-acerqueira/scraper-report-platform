@@ -33,3 +33,21 @@ def test_export_to_csv_creates_file(tmp_path, books_data):
     assert rows[0]["title"] == books_data[0]["title"]
     assert float(rows[0]["price"]) == books_data[0]["price"]
     assert len(rows) == len(books_data)
+
+
+def test_quote_export_to_csv_and_json(tmp_path):
+    from scraper.utils.export import export_to_csv, export_to_json
+    data = [
+        {"text": "To be or not to be", "author": "Shakespeare"},
+        {"text": "I think, therefore I am", "author": "Descartes"}
+    ]
+    export_to_csv(data, output_dir=tmp_path, prefix="quotes")
+    export_to_json(data, output_dir=tmp_path, prefix="quotes")
+    csv_files = list(tmp_path.glob("quotes_*.csv"))
+    json_files = list(tmp_path.glob("quotes_*.json"))
+    assert len(csv_files) == 1
+    assert len(json_files) == 1
+    with open(csv_files[0], encoding="utf-8") as f:
+        assert "Shakespeare" in f.read()
+    with open(json_files[0], encoding="utf-8") as f:
+        assert "Descartes" in f.read()
