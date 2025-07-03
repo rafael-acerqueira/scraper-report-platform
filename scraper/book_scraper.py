@@ -6,7 +6,7 @@ from .registry import register_scraper
 
 @register_scraper('books')
 class BookScraper(BaseScraper):
-    def parse_books(self, soup: BeautifulSoup) -> List[Dict]:
+    def parse(self, soup: BeautifulSoup) -> List[Dict]:
         books = []
         for book in soup.select('article.product_pod'):
             title = book.h3.a['title']

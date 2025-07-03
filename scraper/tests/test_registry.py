@@ -82,7 +82,16 @@ def test_registry_without_params():
         assert entry.__name__ == 'Simple'
 
 def test_get_scraper_returns_correct_class():
-    _SCRAPER_REGISTRY.clear()
     @register_scraper('magic')
     class Magic: pass
     assert get_scraper('magic') is Magic
+
+def test_quote_scraper_registry():
+    import scraper.quote_scraper
+    import importlib
+
+
+    _SCRAPER_REGISTRY.clear()
+    importlib.reload(scraper.quote_scraper)
+    scraper_cls = get_scraper("quotes")
+    assert scraper_cls is scraper.quote_scraper.QuoteScraper
