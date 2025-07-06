@@ -3,6 +3,7 @@ from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import generics, filters, status
 from rest_framework.views import APIView
+from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
 from .filters import ProductFilter
@@ -24,6 +25,10 @@ class ProductDetailView(generics.RetrieveAPIView):
 
 
 class ProductExportView(APIView):
+    permission_classes = [IsAdminUser]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = ProductFilter
+
     def get(self, request):
         export_format = request.query_params.get('export_format', 'json')
         queryset = Product.objects.all()
