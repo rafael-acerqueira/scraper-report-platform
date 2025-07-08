@@ -89,6 +89,97 @@ pytest
 python manage.py runserver
 ```
 
+---
+
+## Deploying & Running Jobs on AWS Lambda
+
+You can automate scraping tasks and run them in the cloud using AWS Lambda. This enables you to run your scraping jobs periodically, saving results directly to **any cloud PostgreSQL database** (e.g., AWS RDS, Render, Neon, Supabase, ElephantSQL, etc).
+
+### 1. Environment Variables
+
+**Never commit secrets!**
+
+- Create a `.env` file at the project root (do not commit this file!)
+- Define at least:
+  ```
+  DATABASE_URL=postgres://<USER>:<PASSWORD>@<HOST>:<PORT>/<DB_NAME>
+  ```
+- Use the same variable in your Lambda configuration ("Environment Variables").
+
+### 2. Packaging the Project for Lambda
+
+AWS Lambda requires all dependencies and code together in a ZIP file.
+
+```bash
+mkdir lambda_build
+pip install --platform manylinux2014_x86_64 --target=lambda_build --implementation cp --python-version 3.10 --only-binary=:all: psycopg2-binary
+pip install -r requirements.txt --target lambda_build
+cp -r scraper_platform scraper lambda_handler.py lambda_build/
+cp .env lambda_build/   # (or set variables in Lambda console)
+cd lambda_build
+zip -r ../scraper-lambda.zip .
+```
+
+**Tips:**
+
+- Use Python 3.10 (matching the runtime selected in Lambda).
+- Use `psycopg2-binary` for compatibility.
+- Do not include your virtualenv folder (e.g., `.venv`, `.env`) in the ZIP.
+
+### 3. Creating the Lambda Function
+
+- In the AWS Console, create a new Lambda function (Python 3.10).
+- Upload the `scraper-lambda.zip` file.
+- Set the **Handler** to:
+  ```
+  lambda_handler.lambda_handler
+  ```
+  (This means `lambda_handler.py` file and `lambda_handler` function)
+- In **Configuration > Environment Variables**, add:
+  - `DATABASE_URL` with your cloud Postgres connection string.
+
+### 4. Running the Lambda
+
+- In the Lambda console, click **Test** and use this payload:
+  ```json
+  { "scraper": "books" }
+  ```
+- The Lambda will run the job, collect data, and save it to the database.
+
+### 5. Accessing Your Data
+
+- Your data will be in your configured database.
+- You can access it via Django Admin, API, or your favorite SQL tool.
+
+---
+
+### Example Lambda Handler (lambda\_handler.py)
+
+```python
+import os
+import django
+from django.core.management import call_command
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "scraper_platform.scraper_platform.settings")
+django.setup()
+
+def lambda_handler(event, context):
+    scraper = event.get('scraper', 'books')
+    try:
+        call_command('collect_products', f'--scraper={scraper}')
+        return {"status": "success", "scraper": scraper}
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+```
+
+---
+
+### Notes
+
+- **Database:** Use any managed Postgres database in the cloud: AWS RDS, Render, Neon, Supabase, ElephantSQL, etc.
+- **Scheduling:** Use AWS EventBridge (CloudWatch Events) to schedule periodic Lambda invocations (e.g., every hour).
+- **Security:** Use environment variables for secrets and credentials.
+
 ## License
 
 MIT
