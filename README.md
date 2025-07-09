@@ -48,6 +48,39 @@ scraper-report-platform/
 └── README.md
 ```
 
+## Environment Variables
+
+You must configure some environment variables to run the project both locally and in production (AWS Lambda):
+
+**Database (required):**
+
+- `DATABASE_URL` – PostgreSQL connection string (for example, from Neon, Supabase, AWS RDS, etc.)
+
+**AWS S3 Export (optional, but recommended for production):**
+
+- `S3_BUCKET` (or `AWS_STORAGE_BUCKET_NAME`) – Name of your S3 bucket.
+- `AWS_DEFAULT_REGION` – AWS region (e.g., `us-east-1`).
+- `AWS_ACCESS_KEY_ID` – (required locally or if Lambda Role does not have S3 access)
+- `AWS_SECRET_ACCESS_KEY` – (required locally or if Lambda Role does not have S3 access)
+- `S3_PREFIX` – (optional) Subfolder within your bucket for reports.
+
+> **Tip:**\
+> On AWS Lambda, if your Lambda function has a Role with S3 permissions, you may omit `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.\
+> For local development, you must provide these credentials in your `.env` file or via `aws configure`.
+
+Example `.env` for local development:
+
+```env
+DATABASE_URL=postgres://myuser:mypass@myhost:5432/mydb
+S3_BUCKET=my-scraper-bucket
+AWS_DEFAULT_REGION=us-east-1
+AWS_ACCESS_KEY_ID=xxxxxxxxxxxx
+AWS_SECRET_ACCESS_KEY=yyyyyyyyyyyyyyyyyy
+S3_PREFIX=reports
+```
+
+---
+
 ## Roadmap
 
 - [x] Initial project and repository setup
@@ -58,10 +91,10 @@ scraper-report-platform/
 - [x] Pytest: API and scraper tests
 - [x] CI/CD pipeline with GitHub Actions
 - [x] Best practices for Django project layout
-- [ ] Marketplace scraping implementation (multi-site)
-- [ ] Store/export reports to AWS S3
+- [x] Marketplace scraping implementation (multi-site)
+- [x] Store/export reports to AWS S3
 - [ ] Task automation with AWS Lambda
-- [ ] Authentication and advanced filtering
+- [x] Authentication and advanced filtering
 - [ ] Final documentation and presentation
 
 ## How to run locally
@@ -171,6 +204,34 @@ def lambda_handler(event, context):
     except Exception as e:
         return {"status": "error", "message": str(e)}
 ```
+
+---
+
+### Exporting to S3 (AWS)
+
+To automatically export your CSV and JSON reports directly to **AWS S3** (instead of a local folder), configure these environment variables in your Lambda function, Docker container, or production server:
+
+```env
+S3_BUCKET=your-bucket-name
+S3_PREFIX=your/subfolder/path  # (optional, can be left blank)
+```
+
+- `S3_BUCKET` (**required**): Name of the S3 bucket where exports will be saved.
+- `S3_PREFIX` (optional): Subfolder within the bucket. If not set, files go to the bucket root.
+
+**How it works:**
+
+- When these variables are present, the export functions will upload files directly to S3.
+- If not set, files are saved locally to the default folder (e.g., `s3_bucket/`).
+
+**Example for AWS Lambda:**
+
+- Go to your Lambda console, under **Configuration → Environment variables**.
+- Add:
+  - `S3_BUCKET = my-company-data`
+  - `S3_PREFIX = reports` (or leave blank for the root)
+
+Now, every export will go straight to S3, ready for use in BI, reporting, or further automations.
 
 ---
 

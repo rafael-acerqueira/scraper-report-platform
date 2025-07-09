@@ -45,6 +45,6 @@ class Command(BaseCommand):
                 created_count += 1
         self.stdout.write(self.style.SUCCESS(f'Collected and saved {created_count} new products.'))
 
-        export_to_json(items, output_dir='s3_bucket', prefix=scraper_name)
-        export_to_csv(items, output_dir='s3_bucket', prefix=scraper_name)
+        export_to_json(items, prefix=scraper_name)
+        export_to_csv(items, prefix=scraper_name)
         self.stdout.write(self.style.SUCCESS(f'Exported {scraper_name} to s3_bucket as JSON and CSV.'))
