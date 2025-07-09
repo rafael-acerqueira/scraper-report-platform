@@ -27,7 +27,7 @@ def get_export_dir():
 def export_to_json(data, output_dir=None, prefix='books'):
     export_dir = output_dir or get_export_dir()
     filename = f"{prefix}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-    if export_dir.startswith("s3://"):
+    if str(export_dir).startswith("s3://"):
         _export_to_s3(json.dumps(data, ensure_ascii=False, indent=2).encode("utf-8"), export_dir, filename, "application/json")
         print(f"Exported {len(data)} records to {export_dir}/{filename} (S3)")
     else:
@@ -40,7 +40,7 @@ def export_to_json(data, output_dir=None, prefix='books'):
 def export_to_csv(data, output_dir=None, prefix='books'):
     export_dir = output_dir or get_export_dir()
     filename = f"{prefix}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
-    if export_dir.startswith("s3://"):
+    if str(export_dir).startswith("s3://"):
         import io
         output = io.StringIO()
         if data:
