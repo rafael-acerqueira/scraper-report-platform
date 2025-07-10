@@ -93,7 +93,7 @@ S3_PREFIX=reports
 - [x] Best practices for Django project layout
 - [x] Marketplace scraping implementation (multi-site)
 - [x] Store/export reports to AWS S3
-- [ ] Task automation with AWS Lambda
+- [x] Task automation with AWS Lambda
 - [x] Authentication and advanced filtering
 - [ ] Final documentation and presentation
 
@@ -235,10 +235,71 @@ Now, every export will go straight to S3, ready for use in BI, reporting, or fur
 
 ---
 
+## Scheduling with AWS EventBridge (CloudWatch Events)
+
+You can automate your scraping jobs by configuring AWS EventBridge (formerly CloudWatch Events) to trigger your Lambda function on a regular schedule. This allows your scraper to run **every day automatically**, with no manual intervention.
+
+### How to schedule your Lambda with EventBridge (run once a day)
+
+1. **Go to the AWS Lambda console**
+
+   - Open your Lambda function (created as explained above).
+
+2. **Add a Trigger**
+
+   - Click on the **"Add trigger"** button.
+   - Choose **"EventBridge (CloudWatch Events)"** as the trigger source.
+
+3. **Create a new rule**
+
+   - Click "Create a new rule".
+   - **Rule name:** `daily-scrape`
+   - **Rule description:** `Run the scraper Lambda function once per day`
+   - **Rule type:** Schedule expression
+
+4. **Set the schedule expression**
+
+   - For **once a day at 1:00 AM UTC**, enter:
+     ```
+     cron(0 1 * * ? *)
+     ```
+     - You can adjust the hour as needed. The format is: `cron(Minutes Hours Day-of-month Month Day-of-week Year)`
+     - [AWS cron expression reference](https://docs.aws.amazon.com/eventbridge/latest/userguide/eb-create-rule-schedule.html#eb-cron-expressions)
+
+5. **Configure the event payload (optional)**
+
+   - Optionally, set the input for your Lambda:
+     ```json
+     { "scraper": "books" }
+     ```
+   - This tells your Lambda which scraper to run.
+
+6. **Finish**
+
+   - Click "Add" to save the trigger.
+
+Your Lambda will now run automatically every day at the specified time, scraping data, saving it to your database, and exporting to S3.
+
+> **Tip:** You can create multiple rules (triggers) for different times or different scrapers if needed.
+
+---
+
+### Example: Run every day at 2:00 UTC
+
+| Time (UTC) | cron expression      |
+| ---------- | -------------------- |
+| 01:00      | `cron(0 1 * * ? *)`  |
+| 02:00      | `cron(0 2 * * ? *)`  |
+| 23:00      | `cron(0 23 * * ? *)` |
+
+
+---
+
+
+
 ### Notes
 
 - **Database:** Use any managed Postgres database in the cloud: AWS RDS, Render, Neon, Supabase, ElephantSQL, etc.
-- **Scheduling:** Use AWS EventBridge (CloudWatch Events) to schedule periodic Lambda invocations (e.g., every hour).
 - **Security:** Use environment variables for secrets and credentials.
 
 ## License

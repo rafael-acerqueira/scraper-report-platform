@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'scraper_platform.products',
     'rest_framework',
+    'rest_framework.authtoken',
     'django_filters'
 ]
 
