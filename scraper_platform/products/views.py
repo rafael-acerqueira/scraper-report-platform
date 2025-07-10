@@ -1,11 +1,15 @@
 import csv
+
+from django.core.management import call_command
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import generics, filters, status
+from rest_framework import generics, filters, status, permissions
+from rest_framework.authentication import TokenAuthentication
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
+from scraper.registry import get_scraper
 from .filters import ProductFilter
 from .models import Product
 from .serializers import ProductSerializer
@@ -49,3 +53,25 @@ class ProductExportView(APIView):
 
 
         return Response(data, status=status.HTTP_200_OK)
+
+
+class ScrapeTriggerView(APIView):
+    permission_classes = [permissions.IsAdminUser]
+    authentication_classes = [TokenAuthentication]
+
+    def post(self, request):
+        scraper_name = request.data.get('scraper')
+        if not scraper_name:
+            return Response({"error": "Missing 'scraper' parameter."}, status=400)
+
+        try:
+            import scraper.book_scraper
+            get_scraper(scraper_name)
+        except Exception as e:
+            return Response({"error": str(e)}, status=400)
+
+        try:
+            call_command('collect_products', f'--scraper={scraper_name}')
+            return Response({"status": "success", "message": f"Scraper '{scraper_name}' executed."})
+        except Exception as e:
+            return Response({"status": "error", "message": str(e)}, status=500)
