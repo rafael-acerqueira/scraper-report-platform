@@ -151,5 +151,12 @@ REST_FRAMEWORK = {
 
 JAZZMIN_SETTINGS = {
     "default_theme": "darkly",
-    "copyright": "Rafael Aquino"
+    "copyright": "Rafael Aquino",
+    "custom_links": {
+        "products": [{
+            "name": "Dashboard",
+            "url": "/admin/dashboard/",
+            "icon": "fas fa-chart-bar"
+        }],
+    }
 }
