@@ -3,7 +3,8 @@ from django.urls import path
 from django.shortcuts import render
 
 from .admin import ProductAdmin
-from .models import Product
+from .models import Product, ScraperLog
+
 
 class CustomAdminSite(AdminSite):
     site_header = "Scraper Report Platform Admin"
@@ -21,10 +22,12 @@ class CustomAdminSite(AdminSite):
         total_products = Product.objects.count()
         latest = Product.objects.order_by('-collected_at').first()
         last_collected = latest.collected_at if latest else "—"
+        logs = ScraperLog.objects.order_by('-timestamp')[:5]
         context = dict(
             self.each_context(request),
             total_products=total_products,
             last_collected=last_collected,
+            logs=logs,
         )
         return render(request, "admin/dashboard.html", context)
 
