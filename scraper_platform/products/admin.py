@@ -1,7 +1,6 @@
 from django.contrib import admin
 
 from .admin_actions import export_products_csv, export_products_json
-from .models import Product
 
 class PriceRangeFilter(admin.SimpleListFilter):
     title = 'price range'
@@ -24,8 +23,6 @@ class PriceRangeFilter(admin.SimpleListFilter):
         return queryset
 
 
-
-@admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'formatted_price', 'collected_at')
     search_fields = ('title',)
@@ -38,9 +35,3 @@ class ProductAdmin(admin.ModelAdmin):
 
     def formatted_price(self, obj):
         return f"USD {obj.price:.2f}"
-
-admin.site.site_header = "Scraper Report Platform Admin"
-admin.site.site_title = "Scraper Admin"
-admin.site.index_title = "Welcome to Scraper Painel"
-
-
